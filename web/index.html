@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+		"http://www.w3.org/TR/html4/loose.dtd">
+<html ng-app="app">
+<head>
+	<title>Name Scrambler</title>
+	<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css"
+	      rel="stylesheet">
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.min.js"></script>
+	<script type="text/javascript">
+		var app = angular.module('app', []);
+		app.controller('NameGenerator', function ($scope, $http, $location) {
+
+			$scope.$watch(function(){ return $location.path() }, function(){
+				$scope.keywords = $location.path().substr(1);
+				$scope.submit();
+			});
+
+			$scope.submit = function () {
+				if (!$scope.keywords.length) {
+					$scope.message = 'Keywords are required. Separate keywords by comma (",").';
+					return;
+				}
+
+				$scope.keywords = $scope.keywords.replace(' ', '');
+				$scope.message = 'Doing the magic...';
+
+				$http.get('/api/calc/scramble?keywords=' + $scope.keywords).success(function (data) {
+					$scope.message = 'Generated ' + data.results.length + ' names';
+					$scope.results = data.results;
+					$scope.keywords = data.keywords.join(',');
+				});
+			};
+
+			$scope.getUrl = function (provider, name) {
+				if (provider === 'nc')
+					return 'http://www.namecheap.com/domains/domain-name-search/results.aspx?aff=50679&domain=' + name;
+			};
+
+			$scope.keywords = '';
+			$scope.message = 'Awaiting your input...';
+			$scope.results = [];
+		});
+	</script>
+	<style type="text/css">
+		.container {
+			width: 800px;
+			margin: 0 auto;
+		}
+	</style>
+</head>
+<body style="padding-top: 10px;">
+<div class="container" ng-controller="NameGenerator">
+	<h2>Name Generator</h2><br>
+
+	<form class="form-inline" ng-submit="submit()">
+		<label for="keywords">Keywords: </label>
+		<input id="keywords" type="text" placeholder="awesome,project,name" ng-model="keywords">
+		<input type="submit" class="btn btn-success" value="Run">
+	</form>
+	<hr>
+	<span ng-model="results">{{message}}</span>
+	<table class="table table-striped">
+		<thead>
+		<tr ng-show="results.length">
+			<th>Rating</th>
+			<th>Name</th>
+			<td>Domain Provider</td>
+			<td>Domain Provider</td>
+		</tr>
+		</thead>
+		<tr ng-repeat="(key, name) in results">
+			<td>#{{key+1}}</td>
+			<td>{{name}}</td>
+			<td><a href="{{getUrl('nc', name)}}" target="_blank">Name Cheap</a></td>
+			<td><a href="{{getUrl(name)}}" target="_blank">GoDaddy</a></td>
+		</tr>
+	</table>
+</div>
+</body>
+</html>

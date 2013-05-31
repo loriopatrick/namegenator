@@ -1,4 +1,5 @@
 import random
+import socket
 
 vowels = ('a', 'e', 'i', 'o', 'u', 'y')
 consonances = ('b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't',
@@ -8,40 +9,22 @@ tops = ('t', 'i', 'd', 'f', 'j', 'h', 'k', 'l', 'b')
 bots = ('q', 'y', 'p', 'g', 'j')
 flats = ('a', 'c', 'e', 'm', 'n', 'o', 'r', 's', 'u', 'v', 'w', 'x', 'y', 'z')
 
-syllables = ('ing', 'ti', 'po', 'tle', 'fac', 'li', 'ern', 'er', 'ri', 'sion', 'day', 'fer',
-             'lo', 'eve', 'a', 'be', 'vi', 'ny', 'gen', 'men', 'ly', 'per', 'el', 'pen',
-             'ic', 'min', 'ies', 'ed', 'to', 'est', 'pre', 'land', 'mon', 'ket', 'i', 'pro',
-             'la', 'tive', 'light', 'op', 'lec', 'es', 'ac', 'lar', 'car', 'ob', 'out', 'main',
-             're', 'ad', 'pa', 'ci', 'of', 'rec', 'mar', 'tion', 'ar', 'ture', 'mo', 'pos', 'ro',
-             'mis', 'in', 'ers', 'for', 'an', 'tain', 'sen', 'my', 'e', 'ment', 'is', 'aus', 'den',
-             'side', 'nal', 'con', 'or', 'mer', 'pi', 'ings', 'tal', 'ness', 'y', 'tions', 'pe',
-             'se', 'mag', 'tic', 'ning', 'ter', 'ble', 'ra', 'ten', 'ments', 'ties', 'ex',
-             'der', 'so', 'tor', 'set', 'ward', 'nu', 'al', 'ma', 'ta', 'ver', 'some', 'age', 'oc',
-             'de', 'na', 'as', 'ber', 'sub', 'ba', 'pres', 'com', 'si', 'col', 'can', 'sur', 'but',
-             'sup', 'o', 'un', 'fi', 'dy', 'ters', 'cit', 'te', 'di', 'at', 'ful', 'et', 'tu',
-             'cle', 'ted', 'en', 'dis', 'get', 'it', 'af', 'co', 'tem', 'an', 'ca', 'low', 'mu',
-             'au', 'cov', 'tin', 'ty', 'cal', 'ni', 'no', 'cy', 'daq', 'tri', 'ry', 'man', 'par',
-             'ple', 'fa', 'dif', 'tro', 'u', 'ap', 'son', 'cu', 'im', 'ence', 'up')
-
 char_swaps = (
 	('k', 'c'),
-	('a', 'e', 'i'),
+	('a', 'e'),
 	('o', 'u'),
 	('q', 'k'),
-	('y', 'z', 'x'),
-	('w', 'v')
+	('z', 'x'),
+	('w', 'v'),
+    ('m', 'n')
 )
 
-chunk_swaps = (
-	('qu', 'k', 'q'),
-	('ck', 'k')
-)
 type_cuts = (
-	('vvc', '*vc', 1),
-	('vcvcv', 'vc*cv', 1),
-	('vccv', 'v*cv', 1),
-	('cvv', 'cv*', 1),
-    ('cvc', 'cv*', 2)
+	('vvc', '*vc', 3),
+	('vcvcv', 'vc*cv', 3),
+	('vccv', 'v*cv', 10),
+	('cvv', 'cv*', 3),
+    ('cvc', 'cv*', 5)
 )
 
 word_file = open('/usr/share/dict/words')
@@ -94,26 +77,20 @@ def word_rating(word, previous=None):
 
 		pos += 1
 
-	for syllable in syllables:
-		if word.find(syllable) > -1:
-			score += 2
-
 	return - score
 
 def randomise_word(word):
 	rand = random.Random()
-
-	for c in word:
+	for pos in range(len(word)):
 		for swap in char_swaps:
-			if rand.randint(0, 1) and c in swap:
+			if rand.randint(0, 1) and word[pos] in swap:
 				replace = swap[rand.randint(0, len(swap) - 1)]
-				word = word.replace(c, replace)
-				break
-
-	for swap in chunk_swaps:
-		for chunk in swap:
-			if word.find(chunk) > -1:
-				word = word.replace(chunk, swap[rand.randint(0, len(swap) - 1)])
+				if rand.randint(0, 10):
+					word = word.replace(word[pos], replace)
+				else:
+					word_list = list(word)
+					word_list[pos] = replace
+					word = ''.join(word_list)
 				break
 	return word
 
@@ -149,12 +126,9 @@ def get_variations(word):
 		if word not in words:
 			words.append(word)
 
-	for i in range(0, 500):
+	for i in range(0, 50):
 		reforge(randomise_word)
 		reforge(shorten_word)
-		def combine(word):
-			return shorten_word(randomise_word(word))
-		reforge(combine)
 
 	return words
 
@@ -170,7 +144,7 @@ def top_combine(words):
 
 	sort()
 	res = words.pop()
-	l = rand.randint(1, len(words))
+	l = rand.randint(1, min(len(words), 3))
 
 	for i in range(l):
 		sort()
@@ -178,9 +152,7 @@ def top_combine(words):
 
 	return res
 
-
-
-def build_domains(keywords):
+def build_names(keywords):
 	variations = []
 
 	for keyword in keywords:
@@ -192,34 +164,51 @@ def build_domains(keywords):
 	def get_rand_words():
 		res = []
 		for vs in variations:
-			res.append(vs[rand.randint(0, len(vs) / 2 - 1)])
+			word = vs[rand.randint(0, len(vs) - 1)]
+			if rand.randint(0, 1):
+				word = shorten_word(word)
+			if rand.randint(0, 10):
+				word = randomise_word(word)
+			res.append(word)
 		return res
 
 	res = []
-	for x in range(800):
+	for x in range(500):
 		item = top_combine(get_rand_words())
 		if item not in res:
 			res.append(item)
 
 	return res
 
+def try_extensions(base):
+	extensions = ['.com', '.net']
+	res = []
+	for ext in extensions:
+		domain = base + ext
+		if check_domain(domain):
+			res.append(domain)
 
+	return res
 
-domains = build_domains(['ad', 'video', 'custom'])
-domains.sort(key=len)
+def check_domain(domain):
+	sock = socket.socket()
+	sock.connect(('whois.internic.net', 43))
+	sock.send('%s\n' % domain)
 
-print domains
+	response = ''
+	while response.find(domain) == -1:
+		response += sock.recv(512).lower()
 
-#variants = get_variations('decanal')
-#variants.sort(key=word_rating)
+	registered = response.find('no match for ') == -1
+	sock.close()
+	return registered
 
-#print '\n'.join(variants)
-#for word in words[500:1000]:
-#	print word, get_variations(word)
-
-#print 'decanal', randomise_word('decanal')
-
-#words.sort(key=word_rating)
-#rand = random.Random()
-#start = rand.randint(0, 1000)
-#print '\n'.join(words)
+if __name__ == '__main__':
+	names = build_names(['computer', 'system', 'build', 'custom', 'personal'])
+	print names
+#	for name in names:
+#		domains = try_extensions(name)
+#		if len(domains):
+#			print domains
+#		else:
+#			print name, 'X'
