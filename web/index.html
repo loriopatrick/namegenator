@@ -9,13 +9,16 @@
 	<script type="text/javascript">
 		var app = angular.module('app', []);
 		app.controller('NameGenerator', function ($scope, $http, $location) {
-
 			$scope.$watch(function(){ return $location.path() }, function(){
 				$scope.keywords = $location.path().substr(1);
-				$scope.submit();
+				$scope.query();
 			});
 
 			$scope.submit = function () {
+				$location.path('/' + $scope.keywords);
+			};
+
+			$scope.query = function () {
 				if (!$scope.keywords.length) {
 					$scope.message = 'Keywords are required. Separate keywords by comma (",").';
 					return;
