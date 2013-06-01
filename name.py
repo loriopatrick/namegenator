@@ -27,11 +27,6 @@ type_cuts = (
     ('cvc', 'cv*', 5)
 )
 
-word_file = open('/usr/share/dict/words')
-words = word_file.read().split('\n')
-word_file.close()
-words = words[:len(words) - 1]
-
 def get_height(char):
 	if char in bots:
 		return 1
@@ -206,9 +201,3 @@ def check_domain(domain):
 if __name__ == '__main__':
 	names = build_names(['computer', 'system', 'build', 'custom', 'personal'])
 	print names
-#	for name in names:
-#		domains = try_extensions(name)
-#		if len(domains):
-#			print domains
-#		else:
-#			print name, 'X'
