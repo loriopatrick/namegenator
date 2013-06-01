@@ -29,7 +29,7 @@ def names():
 
 @app.route('/')
 def redirect():
-	return send_file('/web/index.html')
+	return send_file('web/index.html')
 
 if __name__ == '__main__':
 	app.run(port=8080)
