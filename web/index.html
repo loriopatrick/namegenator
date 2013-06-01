@@ -68,14 +68,12 @@
 			<th>Rating</th>
 			<th>Name</th>
 			<td>Domain Provider</td>
-			<td>Domain Provider</td>
 		</tr>
 		</thead>
 		<tr ng-repeat="(key, name) in results">
 			<td>#{{key+1}}</td>
 			<td>{{name}}</td>
 			<td><a href="{{getUrl('nc', name)}}" target="_blank">Name Cheap</a></td>
-			<td><a href="{{getUrl(name)}}" target="_blank">GoDaddy</a></td>
 		</tr>
 	</table>
 </div>
