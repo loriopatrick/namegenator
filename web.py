@@ -11,7 +11,7 @@ def names():
 	if keywords is None or not len(keywords):
 		return '{"error":"Parameter "keywords" is required. Example: ?keywords=funny,apple,monkey"}'
 
-	keywords = keywords.split(',')
+	keywords = keywords.replace(' ', '').split(',')
 
 	fn = name.build_names
 	if len(keywords) == 1:
